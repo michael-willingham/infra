@@ -6,12 +6,12 @@ metadata:
   name: flux-system
   namespace: flux-system
 spec:
-  interval: 1m
+  interval: 1m0s
   ref:
     branch: master
   secretRef:
     name: flux-system
-  url: ssh://git@github.com/willingham-cloud/k8s-config
+  url: https://github.com/michael-willingham/infra.git
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -19,7 +19,7 @@ metadata:
   name: flux-system
   namespace: flux-system
 spec:
-  interval: 5m
+  interval: 10m0s
   path: ./clusters/willingham-k8s
   prune: true
   sourceRef:
