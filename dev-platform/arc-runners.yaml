@@ -40,7 +40,7 @@ spec:
         namespace: arc-systems
       interval: 10m
   values:
-    githubConfigUrl: "https://github.com/michael-willingham"
+    githubConfigUrl: "https://github.com/michael-willingham/infra"
     githubConfigSecret: arc-github-app
     runnerScaleSetName: wcloud-runner-amd64
     minRunners: 0
@@ -67,7 +67,7 @@ spec:
         namespace: arc-systems
       interval: 10m
   values:
-    githubConfigUrl: "https://github.com/michael-willingham"
+    githubConfigUrl: "https://github.com/michael-willingham/infra"
     githubConfigSecret: arc-github-app
     runnerScaleSetName: wcloud-runner-arm64
     minRunners: 0
