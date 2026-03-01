@@ -1,0 +1,20 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: dev-platform
+  namespace: flux-system
+spec:
+  dependsOn:
+    - name: flux-system
+    - name: namespaces
+    - name: operators
+  interval: 5m
+  retryInterval: 1m
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: ./dev-platform
+  prune: true
+  wait: true
+  timeout: 5m

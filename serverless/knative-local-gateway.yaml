@@ -1,0 +1,30 @@
+---
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: GatewayParameters
+metadata:
+  name: knative-local-gw-params
+  namespace: kgateway-system
+spec:
+  kube:
+    service:
+      type: ClusterIP
+---
+kind: Gateway
+apiVersion: gateway.networking.k8s.io/v1
+metadata:
+  name: knative-local-gateway
+  namespace: kgateway-system
+spec:
+  gatewayClassName: kgateway
+  infrastructure:
+    parametersRef:
+      name: knative-local-gw-params
+      group: gateway.kgateway.dev
+      kind: GatewayParameters
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: All

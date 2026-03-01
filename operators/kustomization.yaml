@@ -1,0 +1,20 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - arc-controller.yaml
+  - camel-k.yaml
+  - dragonfly-operator.yaml
+  - kaoto.yaml
+  - external-dns.yaml
+  - keda.yaml
+  - keycloak.yaml
+  - kgateway.yaml
+  - knative-operator.yaml
+  - opentelemetry-operator.yaml
+  - pg-operator.yaml
+  - rabbitmq-cluster-operator.yaml
+  - strimzi.yaml
+  - tailscale.yaml
+  - tfc-operator.yaml
+  - vpa.yaml

@@ -1,0 +1,35 @@
+---
+# renovate: datasource=github-releases depName=k8snetworkplumbingwg/multus-cni
+# Multus CNI v4.2.4
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - https://raw.githubusercontent.com/k8snetworkplumbingwg/multus-cni/v4.2.4/deployments/multus-daemonset-thick.yml
+images:
+  - name: ghcr.io/k8snetworkplumbingwg/multus-cni
+    newTag: v4.2.4-thick
+patches:
+  # Talos Linux compatibility: fix netns path and bump resource limits
+  # See: https://docs.siderolabs.com/kubernetes-guides/cni/multus
+  - patch: |-
+      apiVersion: apps/v1
+      kind: DaemonSet
+      metadata:
+        name: kube-multus-ds
+        namespace: kube-system
+      spec:
+        template:
+          spec:
+            volumes:
+              - name: host-run-netns
+                hostPath:
+                  path: /var/run/netns/
+            containers:
+              - name: kube-multus
+                resources:
+                  requests:
+                    cpu: "200m"
+                    memory: "100Mi"
+                  limits:
+                    cpu: "300m"
+                    memory: "150Mi"

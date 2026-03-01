@@ -1,0 +1,32 @@
+---
+# NetworkAttachmentDefinition for the ConnectX-7 SR-IOV VFs on DGX Spark nodes.
+#
+# Pods annotated with k8s.v1.cni.cncf.io/networks: dgx-qsfp get an additional
+# interface backed by an SR-IOV VF on the 200Gbps QSFP link, with RDMA support.
+#
+# The resourceName annotation tells Multus to request a VF from the device plugin
+# so the pod gets both the netdev and RDMA device automatically.
+#
+# NOTE: host-local IPAM allocates independently per node. With only 2 nodes
+# and 4 VFs each, pods on different nodes may get the same IP. For production
+# multi-node use, deploy Whereabouts IPAM for cluster-wide coordination.
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
+  name: dgx-qsfp
+  namespace: default
+  annotations:
+    k8s.v1.cni.cncf.io/resourceName: nvidia.com/cx7_qsfp
+spec:
+  config: |
+    {
+      "cniVersion": "0.3.1",
+      "name": "dgx-qsfp",
+      "type": "sriov",
+      "ipam": {
+        "type": "host-local",
+        "subnet": "10.100.0.0/24",
+        "rangeStart": "10.100.0.1",
+        "rangeEnd": "10.100.0.10"
+      }
+    }

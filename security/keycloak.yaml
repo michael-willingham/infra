@@ -1,0 +1,48 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: keycloak-db
+  namespace: keycloak
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: pg-db
+      version: "2.8.2"
+      sourceRef:
+        kind: HelmRepository
+        name: percona
+        namespace: postgres
+      interval: 10m
+  values:
+    users:
+      - name: keycloak
+        databases:
+          - keycloak
+        options: "SUPERUSER"
+---
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  name: keycloak
+  namespace: keycloak
+spec:
+  instances: 3
+  db:
+    vendor: postgres
+    host: keycloak-db-pg-db-primary.keycloak.svc
+    usernameSecret:
+      name: keycloak-db-pg-db-pguser-keycloak
+      key: user
+    passwordSecret:
+      name: keycloak-db-pg-db-pguser-keycloak
+      key: password
+  http:
+    httpEnabled: true
+  ingress:
+    enabled: false
+  hostname:
+    hostname: keycloak.wcloud.sh
+  proxy:
+    headers: xforwarded

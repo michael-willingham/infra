@@ -1,0 +1,35 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: longhorn
+  namespace: longhorn-system
+spec:
+  interval: 1m
+  url: https://charts.longhorn.io
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: longhorn
+  namespace: longhorn-system
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: longhorn
+      version: "1.11.0"
+      sourceRef:
+        kind: HelmRepository
+        name: longhorn
+        namespace: longhorn-system
+      interval: 10m
+  values:
+    persistence:
+      dataEngine: v1
+    defaultSettings:
+      storageMinimalAvailablePercentage: 10
+      storageOverProvisioningPercentage: 150
+      storageReservedPercentageForDefaultDisk: 10
+      guaranteedInstanceManagerCPU: '{"v1":"5","v2":"5"}'
+      v2DataEngine: false

@@ -1,0 +1,65 @@
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: temporal-frontend
+  namespace: temporal
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: temporal-frontend
+  updatePolicy:
+    updateMode: "InPlaceOrRecreate"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: temporal-history
+  namespace: temporal
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: temporal-history
+  updatePolicy:
+    updateMode: "InPlaceOrRecreate"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: temporal-matching
+  namespace: temporal
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: temporal-matching
+  updatePolicy:
+    updateMode: "InPlaceOrRecreate"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: temporal-worker
+  namespace: temporal
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: temporal-worker
+  updatePolicy:
+    updateMode: "InPlaceOrRecreate"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: temporal-web
+  namespace: temporal
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: temporal-web
+  updatePolicy:
+    updateMode: "InPlaceOrRecreate"

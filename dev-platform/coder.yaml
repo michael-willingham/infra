@@ -1,0 +1,66 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: coder-v2
+  namespace: coder
+spec:
+  interval: 1h
+  url: https://helm.coder.com/v2
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: coder-db
+  namespace: coder
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: pg-db
+      version: "2.8.2"
+      sourceRef:
+        kind: HelmRepository
+        name: percona
+        namespace: postgres
+      interval: 10m
+  values:
+    users:
+      - name: coder
+        databases:
+          - coder
+        options: "SUPERUSER"
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: coder
+  namespace: coder
+spec:
+  interval: 10m
+  dependsOn:
+    - name: coder-db
+  chart:
+    spec:
+      chart: coder
+      version: "2.30.2"
+      sourceRef:
+        kind: HelmRepository
+        name: coder-v2
+        namespace: coder
+      interval: 10m
+  values:
+    coder:
+      replicaCount: 1
+      service:
+        type: ClusterIP
+      env:
+        - name: CODER_ACCESS_URL
+          value: "https://coder.wcloud.sh"
+        - name: CODER_PG_CONNECTION_URL
+          valueFrom:
+            secretKeyRef:
+              name: coder-db-pg-db-pguser-coder
+              key: uri
+        - name: CODER_OAUTH2_GITHUB_DEFAULT_PROVIDER_ENABLE
+          value: "true"

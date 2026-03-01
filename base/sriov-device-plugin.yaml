@@ -1,0 +1,142 @@
+---
+# Standalone SR-IOV device plugin for Talos Linux.
+#
+# The upstream SR-IOV Network Operator can't run on Talos because its config
+# daemon tries to mkdir /etc/sriov-operator on the read-only root filesystem.
+# Instead we:
+#   1. Create VFs via sysfs in an init container
+#   2. Install the sriov CNI binary in an init container
+#   3. Run the device plugin to advertise VFs to kubelet
+#
+# VFs are created on the onboard ConnectX-7 (enp1s0f1np1) on DGX Spark nodes.
+# Nodes without that interface are unaffected — the init container is a no-op
+# and the device plugin reports zero devices.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sriov-dp-config
+  namespace: kube-system
+data:
+  config.json: |
+    {
+      "resourceList": [
+        {
+          "resourceName": "cx7_qsfp",
+          "resourcePrefix": "nvidia.com",
+          "selectors": {
+            "pfNames": ["enp1s0f1np1#0-3"],
+            "vendors": ["15b3"],
+            "devices": ["101e"],
+            "isRdma": true
+          }
+        }
+      ]
+    }
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: sriov-device-plugin
+  namespace: kube-system
+  labels:
+    app: sriov-device-plugin
+spec:
+  selector:
+    matchLabels:
+      app: sriov-device-plugin
+  template:
+    metadata:
+      labels:
+        app: sriov-device-plugin
+    spec:
+      nodeSelector:
+        kubernetes.io/os: linux
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+      hostNetwork: true
+      serviceAccountName: default
+      initContainers:
+        # Copy the sriov CNI binary onto the host.
+        - name: sriov-cni
+          image: ghcr.io/k8snetworkplumbingwg/sriov-cni:v2.10.0
+          args: ["--no-sleep"]
+          securityContext:
+            privileged: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 10Mi
+          volumeMounts:
+            - name: cnibin
+              mountPath: /host/opt/cni/bin
+        # Create VFs on the ConnectX-7 if present. No-op on nodes without one.
+        - name: create-vfs
+          image: busybox:1.37
+          securityContext:
+            privileged: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 10Mi
+          command: ["sh", "-c"]
+          args:
+            - |
+              VF_PATH="/sys/class/net/enp1s0f1np1/device/sriov_numvfs"
+              if [ -f "$VF_PATH" ]; then
+                CURRENT=$(cat "$VF_PATH")
+                if [ "$CURRENT" -ne 4 ]; then
+                  echo "Creating 4 VFs on enp1s0f1np1 (currently $CURRENT)"
+                  echo 4 > "$VF_PATH"
+                else
+                  echo "4 VFs already exist on enp1s0f1np1"
+                fi
+              else
+                echo "No CX-7 PF at enp1s0f1np1, skipping VF creation"
+              fi
+          volumeMounts:
+            - name: sys
+              mountPath: /sys
+      containers:
+        - name: sriov-device-plugin
+          image: ghcr.io/k8snetworkplumbingwg/sriov-network-device-plugin:v3.10.0
+          args: ["--log-level=10"]
+          securityContext:
+            privileged: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 50Mi
+            limits:
+              cpu: 200m
+              memory: 100Mi
+          volumeMounts:
+            - name: devicesock
+              mountPath: /var/lib/kubelet/device-plugins
+            - name: plugins-registry
+              mountPath: /var/lib/kubelet/plugins_registry
+            - name: config
+              mountPath: /etc/pcidp
+            - name: device-info
+              mountPath: /var/run/k8s.cni.cncf.io/devinfo/dp
+      volumes:
+        - name: sys
+          hostPath:
+            path: /sys
+        - name: cnibin
+          hostPath:
+            path: /opt/cni/bin
+        - name: devicesock
+          hostPath:
+            path: /var/lib/kubelet/device-plugins
+        - name: plugins-registry
+          hostPath:
+            path: /var/lib/kubelet/plugins_registry
+        - name: config
+          configMap:
+            name: sriov-dp-config
+        - name: device-info
+          hostPath:
+            path: /var/run/k8s.cni.cncf.io/devinfo/dp
+            type: DirectoryOrCreate

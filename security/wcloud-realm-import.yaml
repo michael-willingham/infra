@@ -1,0 +1,275 @@
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: google-oauth
+  namespace: keycloak
+spec:
+  refreshInterval: 10m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  target:
+    name: google-oauth
+    creationPolicy: Owner
+  data:
+    - secretKey: GOOGLE_CLIENT_ID
+      remoteRef:
+        key: GOOGLE_CLIENT_ID
+    - secretKey: GOOGLE_CLIENT_SECRET
+      remoteRef:
+        key: GOOGLE_CLIENT_SECRET
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: argo-oidc-clients
+  namespace: keycloak
+spec:
+  refreshInterval: 10m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  target:
+    name: argo-oidc-clients
+    creationPolicy: Owner
+  data:
+    - secretKey: ARGOCD_OIDC_CLIENT_SECRET
+      remoteRef:
+        key: ARGOCD_OIDC_CLIENT_SECRET
+    - secretKey: ARGO_WORKFLOWS_OIDC_CLIENT_SECRET
+      remoteRef:
+        key: ARGO_WORKFLOWS_OIDC_CLIENT_SECRET
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: headlamp-oidc
+  namespace: keycloak
+spec:
+  refreshInterval: 10m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  target:
+    name: headlamp-oidc
+    creationPolicy: Owner
+  data:
+    - secretKey: HEADLAMP_OIDC_CLIENT_SECRET
+      remoteRef:
+        key: HEADLAMP_OIDC_CLIENT_SECRET
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: grafana-oidc
+  namespace: keycloak
+spec:
+  refreshInterval: 10m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  target:
+    name: grafana-oidc
+    creationPolicy: Owner
+  data:
+    - secretKey: GRAFANA_OIDC_CLIENT_SECRET
+      remoteRef:
+        key: GRAFANA_OIDC_CLIENT_SECRET
+---
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: KeycloakRealmImport
+metadata:
+  name: wcloud-realm-import
+  namespace: keycloak
+spec:
+  keycloakCRName: keycloak
+  placeholders:
+    GOOGLE_CLIENT_ID:
+      secret:
+        name: google-oauth
+        key: GOOGLE_CLIENT_ID
+    GOOGLE_CLIENT_SECRET:
+      secret:
+        name: google-oauth
+        key: GOOGLE_CLIENT_SECRET
+    ARGOCD_OIDC_CLIENT_SECRET:
+      secret:
+        name: argo-oidc-clients
+        key: ARGOCD_OIDC_CLIENT_SECRET
+    ARGO_WORKFLOWS_OIDC_CLIENT_SECRET:
+      secret:
+        name: argo-oidc-clients
+        key: ARGO_WORKFLOWS_OIDC_CLIENT_SECRET
+    HEADLAMP_OIDC_CLIENT_SECRET:
+      secret:
+        name: headlamp-oidc
+        key: HEADLAMP_OIDC_CLIENT_SECRET
+    GRAFANA_OIDC_CLIENT_SECRET:
+      secret:
+        name: grafana-oidc
+        key: GRAFANA_OIDC_CLIENT_SECRET
+  realm:
+    id: wcloud
+    realm: wcloud
+    enabled: true
+    displayName: Willingham Cloud
+    registrationAllowed: false
+    resetPasswordAllowed: false
+    editUsernameAllowed: false
+    loginWithEmailAllowed: true
+    duplicateEmailsAllowed: false
+    rememberMe: true
+    browserFlow: browser-google-only
+    defaultRoles:
+      - offline_access
+      - uma_authorization
+    authenticatorConfig:
+      - alias: google-default-provider
+        config:
+          defaultProvider: google
+    authenticationFlows:
+      - alias: browser-google-only
+        description: Browser login via Google only
+        providerId: basic-flow
+        topLevel: true
+        builtIn: false
+        authenticationExecutions:
+          - authenticator: identity-provider-redirector
+            requirement: REQUIRED
+            priority: 0
+            userSetupAllowed: false
+            authenticatorFlow: false
+            authenticatorConfig: google-default-provider
+    clientScopes:
+      - name: "rabbitmq.tag:administrator"
+        protocol: openid-connect
+        attributes:
+          include.in.token.scope: "true"
+          display.on.consent.screen: "false"
+      - name: "rabbitmq.configure:*/*"
+        protocol: openid-connect
+        attributes:
+          include.in.token.scope: "true"
+          display.on.consent.screen: "false"
+      - name: "rabbitmq.read:*/*"
+        protocol: openid-connect
+        attributes:
+          include.in.token.scope: "true"
+          display.on.consent.screen: "false"
+      - name: "rabbitmq.write:*/*"
+        protocol: openid-connect
+        attributes:
+          include.in.token.scope: "true"
+          display.on.consent.screen: "false"
+    clients:
+      - clientId: argo-cd
+        name: ArgoCD
+        enabled: true
+        protocol: openid-connect
+        publicClient: false
+        standardFlowEnabled: true
+        directAccessGrantsEnabled: false
+        serviceAccountsEnabled: false
+        secret: ${ARGOCD_OIDC_CLIENT_SECRET}
+        redirectUris:
+          - "https://argo-cd.wcloud.sh/auth/callback"
+        webOrigins:
+          - "https://argo-cd.wcloud.sh"
+        defaultClientScopes:
+          - openid
+          - profile
+          - email
+      - clientId: argo-workflows
+        name: Argo Workflows
+        enabled: true
+        protocol: openid-connect
+        publicClient: false
+        standardFlowEnabled: true
+        directAccessGrantsEnabled: false
+        serviceAccountsEnabled: false
+        secret: ${ARGO_WORKFLOWS_OIDC_CLIENT_SECRET}
+        redirectUris:
+          - "https://argo-workflows.wcloud.sh/oauth2/callback"
+        webOrigins:
+          - "https://argo-workflows.wcloud.sh"
+        defaultClientScopes:
+          - openid
+          - profile
+          - email
+      - clientId: headlamp
+        name: Headlamp
+        enabled: true
+        protocol: openid-connect
+        publicClient: false
+        standardFlowEnabled: true
+        directAccessGrantsEnabled: false
+        serviceAccountsEnabled: false
+        secret: ${HEADLAMP_OIDC_CLIENT_SECRET}
+        redirectUris:
+          - "https://k8s.wcloud.sh/oidc-callback"
+        webOrigins:
+          - "https://k8s.wcloud.sh"
+        defaultClientScopes:
+          - openid
+          - profile
+          - email
+      - clientId: grafana
+        name: Grafana
+        enabled: true
+        protocol: openid-connect
+        publicClient: false
+        standardFlowEnabled: true
+        directAccessGrantsEnabled: false
+        serviceAccountsEnabled: false
+        secret: ${GRAFANA_OIDC_CLIENT_SECRET}
+        redirectUris:
+          - "https://grafana.wcloud.sh/login/generic_oauth"
+        webOrigins:
+          - "https://grafana.wcloud.sh"
+        defaultClientScopes:
+          - openid
+          - profile
+          - email
+      - clientId: rabbitmq
+        name: RabbitMQ
+        enabled: true
+        protocol: openid-connect
+        publicClient: true
+        standardFlowEnabled: true
+        directAccessGrantsEnabled: false
+        serviceAccountsEnabled: false
+        redirectUris:
+          - "https://rabbitmq.wcloud.sh/js/oidc-oauth/login-callback.html"
+        webOrigins:
+          - "https://rabbitmq.wcloud.sh"
+        defaultClientScopes:
+          - openid
+          - profile
+          - email
+          - "rabbitmq.tag:administrator"
+          - "rabbitmq.configure:*/*"
+          - "rabbitmq.read:*/*"
+          - "rabbitmq.write:*/*"
+        protocolMappers:
+          - name: rabbitmq-audience
+            protocol: openid-connect
+            protocolMapper: oidc-audience-mapper
+            config:
+              included.custom.audience: "rabbitmq"
+              id.token.claim: "false"
+              access.token.claim: "true"
+    identityProviders:
+      - alias: google
+        providerId: google
+        enabled: true
+        trustEmail: true
+        storeToken: false
+        addReadTokenRoleOnCreate: false
+        authenticateByDefault: true
+        firstBrokerLoginFlowAlias: first broker login
+        config:
+          clientId: ${GOOGLE_CLIENT_ID}
+          clientSecret: ${GOOGLE_CLIENT_SECRET}
+          defaultScope: openid profile email
+          useJwksUrl: "true"

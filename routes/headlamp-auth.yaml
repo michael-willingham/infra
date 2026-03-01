@@ -1,0 +1,83 @@
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: headlamp-kgateway-oauth2
+  namespace: headlamp
+spec:
+  refreshInterval: 10m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  target:
+    name: headlamp-kgateway-oauth2
+    creationPolicy: Owner
+  data:
+    - secretKey: client-secret
+      remoteRef:
+        key: HEADLAMP_OIDC_CLIENT_SECRET
+---
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: GatewayExtension
+metadata:
+  name: headlamp-keycloak-oauth2
+  namespace: headlamp
+spec:
+  oauth2:
+    backendRef:
+      group: ""
+      kind: Service
+      name: keycloak-service
+      namespace: keycloak
+      port: 8080
+    issuerURI: https://keycloak.wcloud.sh/realms/wcloud
+    credentials:
+      clientID: headlamp
+      clientSecretRef:
+        name: headlamp-kgateway-oauth2
+    forwardAccessToken: false
+    redirectURI: https://k8s.wcloud.sh/oidc-callback
+    endSessionEndpoint: https://keycloak.wcloud.sh/realms/wcloud/protocol/openid-connect/logout
+    logoutPath: /oauth2/logout
+    scopes:
+      - openid
+      - profile
+      - email
+    cookies:
+      sameSite: Lax
+---
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: TrafficPolicy
+metadata:
+  name: headlamp-oauth2
+  namespace: headlamp
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: headlamp
+  oauth2:
+    extensionRef:
+      name: headlamp-keycloak-oauth2
+  headerModifiers:
+    request:
+      remove:
+        - Authorization
+  csrf:
+    additionalOrigins:
+      - exact: https://k8s.wcloud.sh
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-headlamp-oauth2-to-keycloak
+  namespace: keycloak
+spec:
+  from:
+    - group: gateway.kgateway.dev
+      kind: GatewayExtension
+      namespace: headlamp
+  to:
+    - group: ""
+      kind: Service
+      name: keycloak-service

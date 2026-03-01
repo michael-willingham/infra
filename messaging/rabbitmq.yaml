@@ -1,0 +1,52 @@
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  name: rabbitmq-cluster
+  namespace: rabbitmq
+spec:
+  replicas: 3
+  resources:
+    requests:
+      cpu: 200m
+      memory: 1Gi
+    limits:
+      memory: 1Gi
+  persistence:
+    storageClassName: longhorn
+    storage: 20Gi
+  rabbitmq:
+    additionalPlugins:
+      - rabbitmq_auth_backend_oauth2
+    additionalConfig: |
+      cluster_formation.peer_discovery_backend = rabbit_peer_discovery_k8s
+      cluster_formation.k8s.host = kubernetes.default.svc.cluster.local
+      cluster_formation.k8s.address_type = hostname
+      vm_memory_high_watermark.relative = 0.7
+      disk_free_limit.relative = 1.5
+
+      ## OAuth2 / Keycloak SSO
+      auth_backends.1 = rabbit_auth_backend_oauth2
+      auth_backends.2 = rabbit_auth_backend_internal
+
+      auth_oauth2.resource_server_id = rabbitmq
+      auth_oauth2.issuer = https://keycloak.wcloud.sh/realms/wcloud
+      auth_oauth2.jwks_url = https://keycloak.wcloud.sh/realms/wcloud/protocol/openid-connect/certs
+      auth_oauth2.https.peer_verification = verify_peer
+      auth_oauth2.https.cacertfile = /etc/ssl/certs/ca-certificates.crt
+      auth_oauth2.https.hostname_verification = wildcard
+      auth_oauth2.preferred_username_claims.1 = preferred_username
+      auth_oauth2.preferred_username_claims.2 = email
+
+      management.oauth_enabled = true
+      management.oauth_client_id = rabbitmq
+      management.oauth_scopes = openid profile rabbitmq.tag:administrator rabbitmq.configure:*/* rabbitmq.read:*/* rabbitmq.write:*/*
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: rabbitmq-cluster
+            topologyKey: kubernetes.io/hostname

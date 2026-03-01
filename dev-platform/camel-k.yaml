@@ -1,0 +1,45 @@
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: camel-k-registry
+  namespace: camel-k
+spec:
+  refreshInterval: 10m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  target:
+    name: camel-k-registry
+    creationPolicy: Owner
+    template:
+      type: kubernetes.io/dockerconfigjson
+      data:
+        .dockerconfigjson: '{"auths":{"ghcr.io":{"username":"michael-willingham","password":"{{ .token }}","auth":"{{ printf "michael-willingham:%s" .token | b64enc }}"}}}'
+  data:
+    - secretKey: token
+      remoteRef:
+        key: CAMEL_K_GHCR_TOKEN
+---
+apiVersion: camel.apache.org/v1
+kind: IntegrationPlatform
+metadata:
+  name: camel-k
+  namespace: camel-k
+  labels:
+    app: camel-k
+spec:
+  build:
+    registry:
+      address: ghcr.io
+      organization: willingham-cloud
+      secret: camel-k-registry
+      insecure: false
+---
+apiVersion: designer.kaoto.io/v1alpha1
+kind: Kaoto
+metadata:
+  name: kaoto
+  namespace: camel-k
+spec:
+  ingress: {}

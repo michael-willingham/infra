@@ -1,0 +1,11 @@
+.env
+.env.*
+*.key
+*.pem
+*.crt.key
+kubeconfig
+kubeconfig.*
+.sops.yaml
+*.dec
+*.decrypted
+.context/

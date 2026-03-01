@@ -1,0 +1,104 @@
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: argo-cd-server
+  namespace: argo
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: argo-cd-argocd-server
+  updatePolicy:
+    updateMode: "InPlaceOrRecreate"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: argo-cd-repo-server
+  namespace: argo
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: argo-cd-argocd-repo-server
+  updatePolicy:
+    updateMode: "InPlaceOrRecreate"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: argo-cd-applicationset-controller
+  namespace: argo
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: argo-cd-argocd-applicationset-controller
+  updatePolicy:
+    updateMode: "InPlaceOrRecreate"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: argo-cd-notifications-controller
+  namespace: argo
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: argo-cd-argocd-notifications-controller
+  updatePolicy:
+    updateMode: "InPlaceOrRecreate"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: argo-cd-redis
+  namespace: argo
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: argo-cd-argocd-redis
+  updatePolicy:
+    updateMode: "InPlaceOrRecreate"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: argo-events-controller-manager
+  namespace: argo
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: argo-events-controller-manager
+  updatePolicy:
+    updateMode: "InPlaceOrRecreate"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: argo-workflows-server
+  namespace: argo
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: argo-workflows-server
+  updatePolicy:
+    updateMode: "InPlaceOrRecreate"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: argo-workflows-controller
+  namespace: argo
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: argo-workflows-workflow-controller
+  updatePolicy:
+    updateMode: "InPlaceOrRecreate"

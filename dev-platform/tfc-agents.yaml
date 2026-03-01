@@ -1,0 +1,50 @@
+---
+apiVersion: app.terraform.io/v1alpha2
+kind: AgentPool
+metadata:
+  name: tfc-agent-amd64
+  namespace: tfc-operator-system
+spec:
+  organization: willingham-cloud
+  token:
+    secretKeyRef:
+      name: tfc-token
+      key: token
+  name: wcloud-agent-amd64
+  agentTokens:
+    - name: amd64-token
+  agentDeployment:
+    spec:
+      containers:
+        - name: tfc-agent
+          image: hashicorp/tfc-agent:1.28
+      nodeSelector:
+        kubernetes.io/arch: amd64
+  autoscaling:
+    minReplicas: 3
+    maxReplicas: 10
+---
+apiVersion: app.terraform.io/v1alpha2
+kind: AgentPool
+metadata:
+  name: tfc-agent-arm64
+  namespace: tfc-operator-system
+spec:
+  organization: willingham-cloud
+  token:
+    secretKeyRef:
+      name: tfc-token
+      key: token
+  name: wcloud-agent-arm64
+  agentTokens:
+    - name: arm64-token
+  agentDeployment:
+    spec:
+      containers:
+        - name: tfc-agent
+          image: hashicorp/tfc-agent:1.28
+      nodeSelector:
+        kubernetes.io/arch: arm64
+  autoscaling:
+    minReplicas: 3
+    maxReplicas: 10

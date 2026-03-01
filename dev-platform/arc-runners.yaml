@@ -1,0 +1,78 @@
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: arc-github-app
+  namespace: arc-runners
+spec:
+  refreshInterval: 10m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  target:
+    name: arc-github-app
+    creationPolicy: Owner
+  data:
+    - secretKey: github_app_id
+      remoteRef:
+        key: GH_APP_ID
+    - secretKey: github_app_installation_id
+      remoteRef:
+        key: GH_APP_INSTALLATION_ID
+    - secretKey: github_app_private_key
+      remoteRef:
+        key: GH_APP_PRIVATE_KEY
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: arc-runner-amd64
+  namespace: arc-runners
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: gha-runner-scale-set
+      version: "0.13.1"
+      sourceRef:
+        kind: HelmRepository
+        name: actions-runner-controller-charts
+        namespace: arc-systems
+      interval: 10m
+  values:
+    githubConfigUrl: "https://github.com/willingham-cloud"
+    githubConfigSecret: arc-github-app
+    runnerScaleSetName: wcloud-runner-amd64
+    minRunners: 0
+    maxRunners: 4
+    template:
+      spec:
+        nodeSelector:
+          kubernetes.io/arch: amd64
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: arc-runner-arm64
+  namespace: arc-runners
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: gha-runner-scale-set
+      version: "0.13.1"
+      sourceRef:
+        kind: HelmRepository
+        name: actions-runner-controller-charts
+        namespace: arc-systems
+      interval: 10m
+  values:
+    githubConfigUrl: "https://github.com/willingham-cloud"
+    githubConfigSecret: arc-github-app
+    runnerScaleSetName: wcloud-runner-arm64
+    minRunners: 0
+    maxRunners: 4
+    template:
+      spec:
+        nodeSelector:
+          kubernetes.io/arch: arm64

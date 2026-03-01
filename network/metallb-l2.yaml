@@ -1,0 +1,40 @@
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: willingham-private-ip-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 192.168.4.2-192.168.4.9
+  avoidBuggyIPs: true
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: willingham-private-ip-l2-advertisement-custom-pc
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - willingham-private-ip-pool
+  interfaces:
+    - enp12s0
+  nodeSelectors:
+    - matchLabels:
+        kubernetes.io/hostname: talos-76w-3r0
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: willingham-private-ip-l2-advertisement-dgx
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - willingham-private-ip-pool
+  interfaces:
+    - enP7s7
+  nodeSelectors:
+    - matchLabels:
+        kubernetes.io/hostname: talos-7aj-lwl
+    - matchLabels:
+        kubernetes.io/hostname: talos-ysi-4k0

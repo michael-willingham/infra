@@ -1,0 +1,19 @@
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: kaoto-operator-group
+  namespace: camel-k
+spec: {}
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: kaoto-operator
+  namespace: camel-k
+spec:
+  channel: alpha
+  name: kaoto-operator
+  source: operatorhubio-catalog
+  sourceNamespace: olm
+  installPlanApproval: Automatic

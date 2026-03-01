@@ -1,0 +1,25 @@
+---
+# renovate: datasource=github-releases depName=knative-extensions/net-gateway-api versioning=regex:^knative-v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)$
+# net-gateway-api knative-v1.21.0
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - https://github.com/knative-extensions/net-gateway-api/releases/download/knative-v1.21.0/net-gateway-api.yaml
+patches:
+  - target:
+      kind: ConfigMap
+      name: config-gateway
+      namespace: knative-serving
+    patch: |
+      - op: add
+        path: /data/external-gateways
+        value: |
+          - class: kgateway
+            gateway: kgateway-system/external-gateway
+            service: kgateway-system/external-gateway
+      - op: add
+        path: /data/local-gateways
+        value: |
+          - class: kgateway
+            gateway: kgateway-system/knative-local-gateway
+            service: kgateway-system/knative-local-gateway

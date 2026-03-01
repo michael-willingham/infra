@@ -1,0 +1,20 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - alertmanager.yaml
+  - argo-cd.yaml
+  - argo-workflows.yaml
+  - coder.yaml
+  - grafana.yaml
+  - headlamp-auth.yaml
+  - headlamp.yaml
+  - hubble.yaml
+  - jaeger.yaml
+  - kafbat-ui.yaml
+  - kaoto.yaml
+  - keycloak.yaml
+  - longhorn.yaml
+  - rabbitmq.yaml
+  - temporal.yaml
+  - victoria-metrics.yaml

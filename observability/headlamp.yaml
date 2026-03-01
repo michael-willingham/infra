@@ -1,0 +1,82 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: headlamp
+  namespace: headlamp
+spec:
+  interval: 1m
+  url: https://kubernetes-sigs.github.io/headlamp/
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: headlamp-kubeconfig
+  namespace: headlamp
+data:
+  config: |
+    apiVersion: v1
+    kind: Config
+    clusters:
+      - name: in-cluster
+        cluster:
+          server: https://kubernetes.default.svc
+          certificate-authority: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    contexts:
+      - name: main
+        context:
+          cluster: in-cluster
+          user: headlamp-sa
+    current-context: main
+    users:
+      - name: headlamp-sa
+        user:
+          tokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: headlamp
+  namespace: headlamp
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: headlamp
+      version: "0.40.0"
+      sourceRef:
+        kind: HelmRepository
+        name: headlamp
+        namespace: headlamp
+      interval: 10m
+  values:
+    config:
+      inCluster: false
+      watchPlugins: true
+      extraArgs:
+        - "-kubeconfig=/etc/headlamp/kubeconfig/config"
+    pluginsManager:
+      enabled: true
+      configContent: |
+        plugins:
+          - name: headlamp_flux
+            source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_flux
+            version: 0.5.0
+          - name: headlamp_cert-manager
+            source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_cert-manager
+            version: 0.1.0
+          - name: headlamp_keda
+            source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_keda
+            version: 0.1.1-beta
+        installOptions:
+          maxConcurrent: 3
+    volumeMounts:
+      - name: headlamp-kubeconfig
+        mountPath: /etc/headlamp/kubeconfig
+        readOnly: true
+    volumes:
+      - name: headlamp-kubeconfig
+        configMap:
+          name: headlamp-kubeconfig
+    clusterRoleBinding:
+      create: true

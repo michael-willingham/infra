@@ -1,0 +1,77 @@
+---
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: jaeger
+  namespace: jaeger
+spec:
+  managementState: managed
+  mode: statefulset
+  image: jaegertracing/jaeger:2.15.1
+  podSecurityContext:
+    runAsUser: 10001
+    fsGroup: 10001
+  ports:
+    - name: jaeger-query
+      port: 16686
+      targetPort: 16686
+      protocol: TCP
+  volumeMounts:
+    - name: badger-data
+      mountPath: /badger
+  volumeClaimTemplates:
+    - metadata:
+        name: badger-data
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 10Gi
+  config:
+    service:
+      extensions: [jaeger_storage, jaeger_query, healthcheckv2]
+      pipelines:
+        traces:
+          receivers: [otlp, jaeger, zipkin]
+          processors: [batch]
+          exporters: [jaeger_storage_exporter]
+    extensions:
+      healthcheckv2:
+        use_v2: true
+        http:
+          endpoint: 0.0.0.0:13133
+      jaeger_query:
+        storage:
+          traces: badger_store
+      jaeger_storage:
+        backends:
+          badger_store:
+            badger:
+              directories:
+                keys: /badger/keys
+                values: /badger/values
+              ephemeral: false
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+      jaeger:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:14250
+          thrift_http:
+            endpoint: 0.0.0.0:14268
+          thrift_compact:
+            endpoint: 0.0.0.0:6831
+          thrift_binary:
+            endpoint: 0.0.0.0:6832
+      zipkin:
+        endpoint: 0.0.0.0:9411
+    processors:
+      batch: {}
+    exporters:
+      jaeger_storage_exporter:
+        trace_storage: badger_store

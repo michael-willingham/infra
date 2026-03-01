@@ -1,0 +1,8 @@
+---
+# renovate: datasource=github-releases depName=knative-extensions/eventing-kafka-broker versioning=regex:^knative-v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)$
+# eventing-kafka-broker knative-v1.21.0
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - eventing-kafka-controller.yaml
+  - eventing-kafka-broker.yaml

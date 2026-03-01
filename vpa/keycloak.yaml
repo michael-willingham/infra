@@ -1,0 +1,26 @@
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: keycloak
+  namespace: keycloak
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: keycloak
+  updatePolicy:
+    updateMode: "InPlaceOrRecreate"
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: keycloak-operator
+  namespace: keycloak
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: keycloak-operator
+  updatePolicy:
+    updateMode: "InPlaceOrRecreate"

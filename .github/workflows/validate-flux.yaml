@@ -1,0 +1,44 @@
+name: Validate Flux
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  flux-diff:
+    name: Flux Diff
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: wcloud-runner-amd64
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Flux CLI
+        uses: fluxcd/flux2/action@v2.8.1
+
+      - name: Diff against cluster
+        run: |
+          errors=0
+          for ks in namespaces crds operators network security argo dev-platform routes vpa; do
+            echo "::group::$ks"
+            diff_exit=0
+            output=$(flux diff kustomization "$ks" --path "./$ks" 2>&1) || diff_exit=$?
+            echo "$output"
+            if [ "$diff_exit" -eq 0 ]; then
+              echo "No changes"
+            elif [ "$diff_exit" -eq 1 ]; then
+              echo "Changes detected (expected in PR)"
+            elif echo "$output" | grep -qE 'not found|no matches for kind'; then
+              echo "::warning::$ks references resources not yet on cluster (expected for new namespaces/kustomizations)"
+            else
+              echo "::error::Failed to diff $ks (exit code $diff_exit)"
+              errors=$((errors + 1))
+            fi
+            echo "::endgroup::"
+          done
+          if [ "$errors" -gt 0 ]; then
+            echo "::error::$errors kustomization(s) failed validation"
+            exit 1
+          fi

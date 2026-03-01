@@ -1,0 +1,38 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - argo.yaml
+  - arc-runners.yaml
+  - arc-systems.yaml
+  - armada-system.yaml
+  - camel-k.yaml
+  - cert-manager.yaml
+  - coder.yaml
+  - dragonfly.yaml
+  - external-dns.yaml
+  - external-secrets.yaml
+  - headlamp.yaml
+  - kafka.yaml
+  - keda.yaml
+  - keycloak.yaml
+  - jaeger.yaml
+  - kgateway-system.yaml
+  - knative-eventing.yaml
+  - knative-operator.yaml
+  - knative-serving.yaml
+  - longhorn-system.yaml
+  - metallb-system.yaml
+  - multus.yaml
+  - nats.yaml
+  - nvidia-device-plugin.yaml
+  - otel-system.yaml
+  - olm.yaml
+  - operators.yaml
+  - postgres.yaml
+  - rabbitmq.yaml
+  - tailscale.yaml
+  - temporal.yaml
+  - tfc-operator-system.yaml
+  - vmks.yaml
+  - vpa.yaml

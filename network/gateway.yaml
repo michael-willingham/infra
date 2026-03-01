@@ -1,0 +1,64 @@
+---
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: GatewayParameters
+metadata:
+  name: custom-gw-params
+  namespace: kgateway-system
+spec:
+  kube:
+    service:
+      extraAnnotations:
+        external-dns.alpha.kubernetes.io/hostname: "*.wcloud.sh,*.kn.wcloud.sh"
+---
+kind: Gateway
+apiVersion: gateway.networking.k8s.io/v1
+metadata:
+  name: external-gateway
+  namespace: kgateway-system
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-cloudflare
+spec:
+  gatewayClassName: kgateway
+  infrastructure:
+    parametersRef:
+      name: custom-gw-params
+      group: gateway.kgateway.dev
+      kind: GatewayParameters
+  listeners:
+    - name: https
+      protocol: HTTPS
+      hostname: "*.wcloud.sh"
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: willingham-cloud-wildcard-tls
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: https-knative
+      protocol: HTTPS
+      hostname: "*.kn.wcloud.sh"
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: knative-wildcard-tls
+      allowedRoutes:
+        namespaces:
+          from: All
+---
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: HTTPListenerPolicy
+metadata:
+  name: gateway-http-policy
+  namespace: kgateway-system
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: external-gateway
+  upgradeConfig:
+    enabledUpgrades:
+      - websocket
+      - DERP

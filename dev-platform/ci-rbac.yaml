@@ -1,0 +1,23 @@
+---
+# flux diff kustomization needs server-side dry-run, which requires
+# create/patch on all resource types. There's no "dry-run only" RBAC
+# in Kubernetes, so this effectively needs broad write access.
+# cluster-admin is the pragmatic choice for a homelab cluster.
+#
+# The SA names come from the gha-runner-scale-set chart:
+# <runnerScaleSetName>-gha-rs-no-permission
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: arc-runners-cluster-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: wcloud-runner-amd64-gha-rs-no-permission
+    namespace: arc-runners
+  - kind: ServiceAccount
+    name: wcloud-runner-arm64-gha-rs-no-permission
+    namespace: arc-runners

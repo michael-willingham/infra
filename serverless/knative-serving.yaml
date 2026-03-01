@@ -1,0 +1,25 @@
+---
+apiVersion: operator.knative.dev/v1beta1
+kind: KnativeServing
+metadata:
+  name: knative-serving
+  namespace: knative-serving
+spec:
+  ingress:
+    istio:
+      enabled: false
+  config:
+    network:
+      ingress-class: gateway-api.ingress.networking.knative.dev
+      domain-template: "{{.Name}}-{{.Namespace}}.{{.Domain}}"
+    domain:
+      kn.wcloud.sh: ""
+    gateway:
+      external-gateways: |
+        - class: kgateway
+          gateway: kgateway-system/external-gateway
+          service: kgateway-system/external-gateway
+      local-gateways: |
+        - class: kgateway
+          gateway: kgateway-system/knative-local-gateway
+          service: kgateway-system/knative-local-gateway

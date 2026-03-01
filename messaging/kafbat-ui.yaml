@@ -1,0 +1,68 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: kafbat
+  namespace: kafka
+spec:
+  interval: 1m
+  url: https://ui.charts.kafbat.io
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: kafbat-ui-oidc
+  namespace: kafka
+spec:
+  refreshInterval: 10m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  target:
+    name: kafbat-ui-oidc
+    creationPolicy: Owner
+  data:
+    - secretKey: clientSecret
+      remoteRef:
+        key: KAFBAT_UI_OIDC_CLIENT_SECRET
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kafbat-ui
+  namespace: kafka
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: kafka-ui
+      version: "1.6.0"
+      sourceRef:
+        kind: HelmRepository
+        name: kafbat
+        namespace: kafka
+      interval: 10m
+  valuesFrom:
+    - kind: Secret
+      name: kafbat-ui-oidc
+      valuesKey: clientSecret
+      targetPath: yamlApplicationConfig.auth.oauth2.client.keycloak.clientSecret
+  values:
+    yamlApplicationConfig:
+      kafka:
+        clusters:
+          - name: kafka-cluster
+            bootstrapServers: kafka-cluster-kafka-bootstrap.kafka.svc:9092
+      auth:
+        type: OAUTH2
+        oauth2:
+          client:
+            keycloak:
+              clientId: kafbat-ui
+              scope: openid
+              issuer-uri: https://keycloak.wcloud.sh/realms/wcloud
+              user-name-attribute: preferred_username
+              client-name: keycloak
+              provider: keycloak
+              custom-params:
+                type: oauth

@@ -1,0 +1,60 @@
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: cloudflare-dns-token
+  namespace: external-dns
+spec:
+  refreshInterval: 10m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  target:
+    name: cloudflare-dns-token
+    creationPolicy: Owner
+  data:
+    - secretKey: CLOUDFLARE_DNS_API_TOKEN
+      remoteRef:
+        key: CLOUDFLARE_DNS_API_TOKEN
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: external-dns
+  namespace: external-dns
+spec:
+  interval: 1m
+  url: https://kubernetes-sigs.github.io/external-dns
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: external-dns
+  namespace: external-dns
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: external-dns
+      version: "1.20.0"
+      sourceRef:
+        kind: HelmRepository
+        name: external-dns
+        namespace: external-dns
+      interval: 10m
+  values:
+    env:
+      - name: CF_API_TOKEN
+        valueFrom:
+          secretKeyRef:
+            key: CLOUDFLARE_DNS_API_TOKEN
+            name: cloudflare-dns-token
+    provider:
+      name: cloudflare
+    sources:
+      - service
+      # - ingress
+      # - gateway-httproute
+      # - gateway-tlsroute
+      # - gateway-tcproute
+      # - gateway-udproute

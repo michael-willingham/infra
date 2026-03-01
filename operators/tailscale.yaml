@@ -1,0 +1,52 @@
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: operator-oauth
+  namespace: tailscale
+spec:
+  refreshInterval: 10m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  target:
+    name: operator-oauth
+    creationPolicy: Owner
+  data:
+    - secretKey: client_id
+      remoteRef:
+        key: TAILSCALE_CLIENT_ID
+    - secretKey: client_secret
+      remoteRef:
+        key: TAILSCALE_CLIENT_SECRET
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: tailscale
+  namespace: tailscale
+spec:
+  interval: 1m
+  url: https://pkgs.tailscale.com/helmcharts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: tailscale
+  namespace: tailscale
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: tailscale-operator
+      version: "1.94.2"
+      sourceRef:
+        kind: HelmRepository
+        name: tailscale
+        namespace: tailscale
+      interval: 10m
+  values:
+    apiServerProxyConfig:
+      mode: "true"
+    operatorConfig:
+      hostname: k8s

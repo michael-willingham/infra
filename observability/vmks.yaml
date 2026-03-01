@@ -1,0 +1,73 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: victoriametrics
+  namespace: vmks
+spec:
+  interval: 1m
+  url: https://victoriametrics.github.io/helm-charts
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: grafana-oidc
+  namespace: vmks
+spec:
+  refreshInterval: 10m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  target:
+    name: grafana-oidc
+    creationPolicy: Owner
+  data:
+    - secretKey: client-secret
+      remoteRef:
+        key: GRAFANA_OIDC_CLIENT_SECRET
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: vmks
+  namespace: vmks
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: victoria-metrics-k8s-stack
+      version: "0.72.2"
+      sourceRef:
+        kind: HelmRepository
+        name: victoriametrics
+        namespace: vmks
+      interval: 10m
+  valuesFrom:
+    - kind: Secret
+      name: grafana-oidc
+      valuesKey: client-secret
+      targetPath: grafana.grafana\.ini.auth\.generic_oauth.client_secret
+  values:
+    grafana:
+      assertNoLeakedSecrets: false
+      deploymentStrategy:
+        type: Recreate
+      grafana.ini:
+        server:
+          domain: grafana.wcloud.sh
+          root_url: https://grafana.wcloud.sh
+        auth.generic_oauth:
+          enabled: true
+          name: Keycloak
+          allow_sign_up: true
+          client_id: grafana
+          scopes: openid profile email
+          auth_url: https://keycloak.wcloud.sh/realms/wcloud/protocol/openid-connect/auth
+          token_url: https://keycloak.wcloud.sh/realms/wcloud/protocol/openid-connect/token
+          api_url: https://keycloak.wcloud.sh/realms/wcloud/protocol/openid-connect/userinfo
+          role_attribute_path: "email && 'GrafanaAdmin'"
+          allow_assign_grafana_admin: true
+          skip_org_role_sync: false
+      persistence:
+        enabled: true
+        type: pvc

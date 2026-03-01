@@ -1,0 +1,260 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: temporalio
+  namespace: temporal
+spec:
+  interval: 1h
+  url: https://go.temporal.io/helm-charts/
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: temporal-web-oidc
+  namespace: temporal
+spec:
+  refreshInterval: 10m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical
+  target:
+    name: temporal-web-oidc
+    creationPolicy: Owner
+    template:
+      data:
+        TEMPORAL_AUTH_CLIENT_SECRET: "{{ .clientSecret }}"
+  data:
+    - secretKey: clientSecret
+      remoteRef:
+        key: TEMPORAL_UI_OIDC_CLIENT_SECRET
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: temporal-db
+  namespace: temporal
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: pg-db
+      version: "2.8.2"
+      sourceRef:
+        kind: HelmRepository
+        name: percona
+        namespace: postgres
+      interval: 10m
+  values:
+    proxy:
+      pgBouncer:
+        config:
+          global:
+            # Temporal issues prepared/cancel-heavy SQL traffic; transaction mode caused
+            # repeated statement/cancel failures and reconciliation stalls.
+            pool_mode: session
+            # 3 PgBouncer replicas × pool_size × 2 databases must stay under
+            # PostgreSQL max_connections (100). 3 × 10 × 2 = 60, leaving room
+            # for replication, monitoring, and operator connections.
+            default_pool_size: "10"
+            reserve_pool_size: "3"
+            query_wait_timeout: "300"
+            max_prepared_statements: "0"
+    users:
+      - name: temporal
+        databases:
+          - temporal-default-store
+          - temporal-visibility-store
+        options: "SUPERUSER"
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: temporal
+  namespace: temporal
+spec:
+  interval: 10m
+  timeout: 15m
+  suspend: false
+  dependsOn:
+    - name: temporal-db
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              version: v1
+              kind: Deployment
+              name: temporal-frontend
+            patch: |
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: temporal-frontend
+              spec:
+                template:
+                  spec:
+                    containers:
+                      - name: temporal-frontend
+                        livenessProbe:
+                          initialDelaySeconds: 300
+          - target:
+              version: v1
+              kind: Deployment
+              name: temporal-history
+            patch: |
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: temporal-history
+              spec:
+                template:
+                  spec:
+                    containers:
+                      - name: temporal-history
+                        livenessProbe:
+                          initialDelaySeconds: 300
+          - target:
+              version: v1
+              kind: Deployment
+              name: temporal-matching
+            patch: |
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: temporal-matching
+              spec:
+                template:
+                  spec:
+                    containers:
+                      - name: temporal-matching
+                        livenessProbe:
+                          initialDelaySeconds: 300
+  chart:
+    spec:
+      chart: temporal
+      version: "1.0.0-rc.2"
+      sourceRef:
+        kind: HelmRepository
+        name: temporalio
+        namespace: temporal
+      interval: 10m
+  values:
+    server:
+      image:
+        tag: "1.29.3"
+      # Keep DB fan-out bounded while preserving HA.
+      replicaCount: 2
+      frontend:
+        readinessProbe:
+          grpc:
+            port: 7233
+            service: temporal.api.workflowservice.v1.WorkflowService
+          timeoutSeconds: 5
+      additionalVolumes:
+        - name: pg-ca-cert
+          secret:
+            secretName: temporal-db-pg-db-cluster-ca-cert
+            items:
+              - key: root.crt
+                path: ca.crt
+      additionalVolumeMounts:
+        - name: pg-ca-cert
+          mountPath: /etc/temporal/pg-tls
+          readOnly: true
+      config:
+        namespaces:
+          create: true
+          namespace:
+            - name: default
+              retention: 3d
+        persistence:
+          defaultStore: default
+          visibilityStore: visibility
+          numHistoryShards: 16
+          datastores:
+            default:
+              sql:
+                pluginName: postgres12
+                driverName: postgres12
+                databaseName: temporal-default-store
+                connectAddr: "temporal-db-pg-db-pgbouncer.temporal.svc:5432"
+                connectProtocol: "tcp"
+                user: temporal
+                existingSecret: temporal-db-pg-db-pguser-temporal
+                secretKey: password
+                maxConns: 2
+                maxIdleConns: 2
+                maxConnLifetime: "1h"
+                createDatabase: false
+                manageSchema: true
+                tls:
+                  enabled: true
+                  caFile: /etc/temporal/pg-tls/ca.crt
+            visibility:
+              sql:
+                pluginName: postgres12
+                driverName: postgres12
+                databaseName: temporal-visibility-store
+                connectAddr: "temporal-db-pg-db-pgbouncer.temporal.svc:5432"
+                connectProtocol: "tcp"
+                user: temporal
+                existingSecret: temporal-db-pg-db-pguser-temporal
+                secretKey: password
+                maxConns: 2
+                maxIdleConns: 2
+                maxConnLifetime: "1h"
+                createDatabase: false
+                manageSchema: true
+                tls:
+                  enabled: true
+                  caFile: /etc/temporal/pg-tls/ca.crt
+    admintools:
+      additionalVolumes:
+        - name: pg-ca-cert
+          secret:
+            secretName: temporal-db-pg-db-cluster-ca-cert
+            items:
+              - key: root.crt
+                path: ca.crt
+      additionalVolumeMounts:
+        - name: pg-ca-cert
+          mountPath: /etc/temporal/pg-tls
+          readOnly: true
+    web:
+      image:
+        tag: "2.47.2"
+      enabled: true
+      replicaCount: 2
+      service:
+        type: ClusterIP
+        port: 8080
+      additionalEnv:
+        - name: TEMPORAL_AUTH_ENABLED
+          value: "true"
+        - name: TEMPORAL_AUTH_TYPE
+          value: oidc
+        - name: TEMPORAL_AUTH_PROVIDER_URL
+          value: https://keycloak.wcloud.sh/realms/wcloud
+        - name: TEMPORAL_AUTH_ISSUER_URL
+          value: https://keycloak.wcloud.sh/realms/wcloud
+        - name: TEMPORAL_AUTH_CLIENT_ID
+          value: temporal-ui
+        - name: TEMPORAL_AUTH_CALLBACK_URL
+          value: https://temporal.wcloud.sh/auth/sso/callback
+        - name: TEMPORAL_AUTH_SCOPES
+          value: openid,profile,email
+        - name: TEMPORAL_UI_PORT
+          value: "8080"
+      additionalEnvSecretName: temporal-web-oidc
+    postgresql:
+      enabled: false
+    cassandra:
+      enabled: false
+    mysql:
+      enabled: false
+    elasticsearch:
+      enabled: false
+    prometheus:
+      enabled: false
+    grafana:
+      enabled: false
