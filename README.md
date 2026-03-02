@@ -5,7 +5,7 @@
 **Home Kubernetes cluster — my learning lab for NVIDIA GPU workloads on k8s,
 building custom operators, Temporal workflows, and whatever else catches my interest.**
 
-3 nodes · 448 GB RAM · 2 PFLOPS AI compute · GitOps with FluxCD
+3 nodes · 448 GB RAM · ~3.4 PFLOPS AI compute · GitOps with FluxCD
 
 ![Kubernetes](https://img.shields.io/badge/kubernetes-cluster-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
 ![Talos Linux](https://img.shields.io/badge/talos_linux-OS-FF7300?style=for-the-badge&logo=linux&logoColor=white)
@@ -79,11 +79,11 @@ Most internal cluster UIs are exposed under `*.wcloud.sh`; selected internal ser
 
 | Node | Hardware | CPU | RAM | Notes |
 |------|----------|-----|-----|-------|
-| `talos-76w-3r0` | 🖥️ Custom PC | AMD Ryzen 9 9950X3D (16c/32t) | 192 GB DDR5 | 3D V-Cache |
+| `talos-76w-3r0` | 🖥️ Custom PC | AMD Ryzen 9 9950X3D (16c/32t) | 192 GB DDR5 | 3D V-Cache · RTX 5070 Ti (~1.4 PFLOP FP4) |
 | `talos-7aj-lwl` | 🟢 DGX Spark | NVIDIA GB10 Grace Blackwell (20c ARM) | 128 GB | 1 PFLOP FP4 |
 | `talos-ysi-4k0` | 🟢 DGX Spark | NVIDIA GB10 Grace Blackwell (20c ARM) | 128 GB | 1 PFLOP FP4 |
 
-**Total:** 56 cores / 72 threads · ~448 GB RAM · 2 PFLOPS FP4 · All 3 nodes are control-plane
+**Total:** 56 cores / 72 threads · ~448 GB RAM · ~3.4 PFLOPS FP4 · All-Blackwell GPUs · All 3 nodes are control-plane
 
 The two DGX Sparks are connected via a 200Gbps QSFP DAC link (ConnectX-7, SR-IOV via [Multus + standalone SR-IOV device plugin](./docs/multus-sriov.md)).
 
