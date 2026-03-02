@@ -33,6 +33,10 @@ metadata:
   namespace: vmks
 spec:
   interval: 10m
+  install:
+    disableOpenAPIValidation: true
+  upgrade:
+    disableOpenAPIValidation: true
   chart:
     spec:
       chart: victoria-metrics-k8s-stack
