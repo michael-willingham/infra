@@ -6,9 +6,6 @@ metadata:
   namespace: flux-system
 spec:
   dependsOn:
-    - name: flux-system
-    - name: namespaces
-    - name: crds
     - name: base
   interval: 5m
   retryInterval: 1m
@@ -52,10 +49,6 @@ spec:
       kind: HelmRelease
       name: pg-operator
       namespace: postgres
-    - apiVersion: helm.toolkit.fluxcd.io/v2
-      kind: HelmRelease
-      name: opentelemetry-operator
-      namespace: otel-system
     - apiVersion: helm.toolkit.fluxcd.io/v2
       kind: HelmRelease
       name: strimzi-cluster-operator

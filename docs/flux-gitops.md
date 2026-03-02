@@ -50,13 +50,13 @@ spec:
 
 **Dependency graph:**
 ```
-namespaces ─┬─→ crds ─┬─→ base ─┬─→ operators ─┬─→ observability ─→ vpa
-            │         │         │              ├─→ network
-            │         │         │              ├─→ messaging
-            │         │         │              ├─→ dev-platform
-            │         │         │              ├─→ serverless
-            │         │         │              └─→ security ─→ argo
-            │         └─→ routes
+flux-system ─→ namespaces ─→ crds ─┬─→ base ─→ operators ─┬─→ observability ─→ vpa
+                                   │                      ├─→ messaging
+                                   ├─→ routes              ├─→ network
+                                                          ├─→ dev-platform
+                                                          ├─→ serverless
+                                                          ├─→ security
+                                                          └─→ argo
 ```
 
 - Namespaces must exist before anything else

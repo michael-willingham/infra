@@ -6,9 +6,6 @@ metadata:
   namespace: flux-system
 spec:
   dependsOn:
-    - name: flux-system
-    - name: namespaces
-    - name: crds
     - name: operators
   interval: 5m
   retryInterval: 1m
