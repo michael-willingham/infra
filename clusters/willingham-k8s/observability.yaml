@@ -19,6 +19,10 @@ spec:
   healthChecks:
     - apiVersion: helm.toolkit.fluxcd.io/v2
       kind: HelmRelease
+      name: dcgm-exporter
+      namespace: dcgm-exporter
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
       name: headlamp
       namespace: headlamp
     - apiVersion: helm.toolkit.fluxcd.io/v2

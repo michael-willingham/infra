@@ -72,6 +72,7 @@ These are workload/platform releases managed by Flux, not cluster operators:
 
 - **Observability (`observability/`)**
   - `vmks` (`victoria-metrics-k8s-stack`)
+  - `dcgm-exporter` (NVIDIA GPU metrics via DCGM)
   - `headlamp`
   - `OpenTelemetryCollector/jaeger`
 
