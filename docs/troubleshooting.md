@@ -305,7 +305,7 @@ kubectl -n longhorn-system get pods -o json | jq -r '.items[] | select(.metadata
 3. **Create namespaces before workloads** - With privileged labels for Talos
 4. **Verify Helm chart repositories** - Test URLs with `helm` CLI before adding
 5. **Pin Helm chart versions** - Never use "latest" in production
-6. **Set Kustomization dependencies correctly** - CRDs → base → operators → observability/network → apps
+6. **Set Kustomization dependencies correctly** - e.g. namespaces → crds → {routes, base} → operators → observability → vpa → apps (non-linear graph; ensure `dependsOn` matches `clusters/willingham-k8s/*.yaml`)
 7. **Check Flux status after changes** - `flux get kustomizations`
 8. **Test on local network with Tailscale OFF** - Avoid routing confusion
 9. **Use proper interface selectors in MetalLB** - Critical for L2 announcements

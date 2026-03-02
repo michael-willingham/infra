@@ -112,13 +112,13 @@ The two DGX Sparks are connected via a 200Gbps QSFP DAC link (ConnectX-7, SR-IOV
 ### 🔗 FluxCD Dependency Chain
 
 ```
-namespaces ─┬─→ crds ─┬─→ base ─┬─→ operators ─┬─→ observability ─→ vpa
-            │         │         │              ├─→ network
-            │         │         │              ├─→ messaging
-            │         │         │              ├─→ dev-platform
-            │         │         │              ├─→ serverless
-            │         │         │              └─→ security ─→ argo
-            │         └─→ routes
+flux-system ─→ namespaces ─→ crds ─┬─→ base ─→ operators ─┬─→ observability ─→ vpa
+                                   │                      ├─→ messaging
+                                   ├─→ routes              ├─→ network
+                                                          ├─→ dev-platform
+                                                          ├─→ serverless
+                                                          ├─→ security
+                                                          └─→ argo
 ```
 
 ---

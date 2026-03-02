@@ -38,13 +38,13 @@ docs/                      # Detailed documentation
 ## FluxCD Dependency Chain
 
 ```
-namespaces ─┬─→ crds ─┬─→ base ─┬─→ operators ─┬─→ observability ─→ vpa
-            │         │         │              ├─→ messaging
-            │         │         │              ├─→ network
-            │         │         │              ├─→ dev-platform
-            │         │         │              ├─→ serverless
-            │         │         │              └─→ security ─→ argo
-            │         └─→ routes
+flux-system ─→ namespaces ─→ crds ─┬─→ base ─→ operators ─┬─→ observability ─→ vpa
+                                   │                      ├─→ messaging
+                                   ├─→ routes              ├─→ network
+                                                          ├─→ dev-platform
+                                                          ├─→ serverless
+                                                          ├─→ security
+                                                          └─→ argo
 ```
 
 ## Common Patterns
