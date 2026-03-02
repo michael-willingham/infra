@@ -32,9 +32,6 @@ spec:
     runtimeClassName: nvidia
     serviceMonitor:
       enabled: false
-    podAnnotations:
-      prometheus.io/scrape: "true"
-      prometheus.io/port: "9400"
 ---
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMPodScrape
