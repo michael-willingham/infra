@@ -31,7 +31,7 @@ spec:
   values:
     runtimeClassName: nvidia
     serviceMonitor:
-      enabled: true
+      enabled: false
     podAnnotations:
       prometheus.io/scrape: "true"
       prometheus.io/port: "9400"
