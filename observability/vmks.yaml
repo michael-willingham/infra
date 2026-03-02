@@ -68,6 +68,9 @@ spec:
           role_attribute_path: "email && 'GrafanaAdmin'"
           allow_assign_grafana_admin: true
           skip_org_role_sync: false
+      sidecar:
+        dashboards:
+          enabled: false
       dashboards:
         gpu:
           nvidia-dcgm:
