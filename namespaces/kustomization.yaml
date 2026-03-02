@@ -9,6 +9,7 @@ resources:
   - camel-k.yaml
   - cert-manager.yaml
   - coder.yaml
+  - dcgm-exporter.yaml
   - dragonfly.yaml
   - external-dns.yaml
   - external-secrets.yaml
