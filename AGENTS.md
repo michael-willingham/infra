@@ -210,13 +210,13 @@ k8s-config/
 Flux Kustomizations follow this dependency graph:
 
 ```
-namespaces ─┬─→ crds ─┬─→ base ─┬─→ operators ─┬─→ observability ─→ vpa
-            │         │         │              ├─→ network
-            │         │         │              ├─→ messaging
-            │         │         │              ├─→ dev-platform
-            │         │         │              ├─→ serverless
-            │         │         │              └─→ security ─→ argo
-            │         └─→ routes
+flux-system ─→ namespaces ─→ crds ─┬─→ base ─→ operators ─┬─→ observability ─→ vpa
+                                   │                      ├─→ messaging
+                                   ├─→ routes              ├─→ network
+                                                          ├─→ dev-platform
+                                                          ├─→ serverless
+                                                          ├─→ security
+                                                          └─→ argo
 ```
 
 Defined in `clusters/willingham-k8s/*.yaml` via:
