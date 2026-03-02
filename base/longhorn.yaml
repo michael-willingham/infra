@@ -25,11 +25,8 @@ spec:
         namespace: longhorn-system
       interval: 10m
   values:
-    persistence:
-      dataEngine: v1
     defaultSettings:
       storageMinimalAvailablePercentage: 10
       storageOverProvisioningPercentage: 150
       storageReservedPercentageForDefaultDisk: 10
-      guaranteedInstanceManagerCPU: '{"v1":"5","v2":"5"}'
-      v2DataEngine: false
+      guaranteedInstanceManagerCPU: '{"v1":"5"}'
