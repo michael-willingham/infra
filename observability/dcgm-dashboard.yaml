@@ -96,7 +96,7 @@ data:
           },
           "lines": true,
           "linewidth": 2,
-          "nullPointMode": "null",
+          "nullPointMode": "connected",
           "options": {
             "dataLinks": []
           },
@@ -248,7 +248,7 @@ data:
           },
           "lines": true,
           "linewidth": 2,
-          "nullPointMode": "null",
+          "nullPointMode": "connected",
           "options": {
             "dataLinks": []
           },
@@ -405,7 +405,7 @@ data:
           },
           "lines": true,
           "linewidth": 2,
-          "nullPointMode": "null",
+          "nullPointMode": "connected",
           "options": {
             "dataLinks": []
           },
@@ -498,7 +498,7 @@ data:
           },
           "lines": true,
           "linewidth": 2,
-          "nullPointMode": "null",
+          "nullPointMode": "connected",
           "options": {
             "dataLinks": []
           },
@@ -587,7 +587,7 @@ data:
           },
           "lines": true,
           "linewidth": 2,
-          "nullPointMode": "null",
+          "nullPointMode": "connected",
           "options": {
             "dataLinks": []
           },
@@ -677,7 +677,7 @@ data:
           },
           "lines": true,
           "linewidth": 2,
-          "nullPointMode": "null",
+          "nullPointMode": "connected",
           "options": {
             "dataLinks": []
           },
