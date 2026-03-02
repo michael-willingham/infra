@@ -69,7 +69,7 @@ Most internal cluster UIs are exposed under `*.wcloud.sh`; selected internal ser
 | 🚪 Ingress | kgateway (Gateway API / Envoy) | ![Gateway API](https://img.shields.io/badge/gateway_API-envoy-6C3FC5) |
 | 🔐 Auth | Keycloak SSO (OIDC) | ![Keycloak](https://img.shields.io/badge/keycloak-SSO-00B8E2) |
 | 🔑 Secrets | External Secrets + Infisical | ![ESO](https://img.shields.io/badge/ESO-infisical-green) |
-| 📊 Monitoring | Victoria Metrics + Grafana | ![VictoriaMetrics](https://img.shields.io/badge/victoria_metrics-monitoring-621773) |
+| 📊 Monitoring | Victoria Metrics + Grafana + DCGM Exporter | ![VictoriaMetrics](https://img.shields.io/badge/victoria_metrics-monitoring-621773) |
 | 📬 Messaging | Kafka · NATS · RabbitMQ | ![Messaging](https://img.shields.io/badge/messaging-3_brokers-orange) |
 | ⚡ Serverless | Knative Serving + Eventing (Kafka broker) | ![Knative](https://img.shields.io/badge/knative-serving%2Feventing-blue) |
 
@@ -100,7 +100,7 @@ The two DGX Sparks are connected via a 200Gbps QSFP DAC link (ConnectX-7, SR-IOV
 📁 network/                   ← MetalLB + Gateway API configs
 📁 messaging/                 ← Kafka, NATS, RabbitMQ
 📁 security/                  ← Keycloak
-📁 observability/             ← Metrics, tracing, cluster UI (VMKS, Jaeger, Headlamp)
+📁 observability/             ← Metrics, tracing, cluster UI (VMKS, Jaeger, Headlamp, DCGM)
 📁 argo/                      ← ArgoCD, Workflows, Events
 📁 dev-platform/              ← Coder, GitHub Actions runners, Temporal, TFC
 📁 serverless/                ← Knative Serving/Eventing + Gateway API integration

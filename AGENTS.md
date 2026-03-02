@@ -190,7 +190,7 @@ k8s-config/
 ├── namespaces/                # Namespace definitions
 ├── base/                      # Foundational operators (longhorn, cert-manager, metallb, ESO)
 ├── operators/                 # Application-level operators (Helm charts)
-├── observability/             # Observability stack (VictoriaMetrics, OpenTelemetry, Jaeger, Headlamp)
+├── observability/             # Observability stack (VictoriaMetrics, OpenTelemetry, Jaeger, Headlamp, DCGM Exporter)
 ├── crds/                      # Custom Resource Definitions
 ├── network/                   # MetalLB, Gateway configs
 ├── messaging/                 # Messaging infrastructure (Kafka, NATS, RabbitMQ)
