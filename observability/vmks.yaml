@@ -72,27 +72,6 @@ spec:
           role_attribute_path: "email && 'GrafanaAdmin'"
           allow_assign_grafana_admin: true
           skip_org_role_sync: false
-      sidecar:
-        dashboards:
-          enabled: false
-      dashboards:
-        gpu:
-          nvidia-dcgm:
-            gnetId: 12239
-            revision: 2
-            datasource: VictoriaMetrics
-      dashboardProviders:
-        dashboardproviders.yaml:
-          apiVersion: 1
-          providers:
-            - name: gpu
-              orgId: 1
-              folder: GPU
-              type: file
-              disableDeletion: false
-              editable: true
-              options:
-                path: /var/lib/grafana/dashboards/gpu
       persistence:
         enabled: true
         type: pvc
